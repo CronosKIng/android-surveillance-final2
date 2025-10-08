@@ -2,41 +2,31 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  workflow_dispatch:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        
-    - name: Debug project location
-      run: |
-        echo "=== Current directory ==="
-        pwd
-        echo "=== Files in root ==="
-        ls -la
-        echo "=== Android files check ==="
-        find . -name "build.gradle" -type f
-        find . -name "settings.gradle" -type f
-        find . -name "AndroidManifest.xml" -type f
-        
-    - name: Build APK from correct location
-      run: |
-        cd /home/runner/work/android-surveillance-final2/android-surveillance-final2
-        ./gradlew clean assembleDebug --stacktrace
-        
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: surveillance-app
-        path: app/build/outputs/apk/debug/app-debug.apk
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Give gradlew permission
+        run: chmod +x gradlew
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
