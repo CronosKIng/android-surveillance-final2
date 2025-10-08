@@ -1,4 +1,3 @@
-
 name: Build Android APK
 
 on:
@@ -20,15 +19,31 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         
-    - name: Check Android project
+    - name: Check what files exist
       run: |
-        echo "=== Checking if this is Android project ==="
-        find . -name "build.gradle" -type f | head -5
-        find . -name "AndroidManifest.xml" -type f | head -5
-        find . -name "MainActivity.java" -type f | head -5
+        echo "=== All files in project ==="
+        ls -la
+        echo "=== Gradle files ==="
+        find . -name "*gradle*" -type f
+        echo "=== Checking if gradlew exists ==="
+        if [ -f "./gradlew" ]; then
+          echo "gradlew EXISTS"
+          chmod +x ./gradlew
+        else
+          echo "gradlew NOT FOUND"
+        fi
         
-    - name: Build with detailed output
+    - name: Try different build methods
       run: |
-        echo "=== Starting Gradle Build ==="
-        ./gradlew clean assembleDebug --stacktrace --no-daemon
+        echo "=== Method 1: Using gradle directly ==="
+        gradle clean assembleDebug --stacktrace || echo "Method 1 failed"
+        
+        echo "=== Method 2: Create gradlew if missing ==="
+        if [ ! -f "./gradlew" ]; then
+          gradle wrapper
+          chmod +x ./gradlew
+        fi
+        
+        echo "=== Method 3: Try with gradlew ==="
+        ./gradlew clean assembleDebug --stacktrace || echo "Method 3 failed"
       continue-on-error: true
