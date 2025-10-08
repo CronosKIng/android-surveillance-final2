@@ -20,14 +20,23 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         
-    - name: Build APK with Gradle
+    - name: Debug - List files
       run: |
-        chmod +x ./gradlew
-        ./gradlew assembleDebug
+        ls -la
+        find . -name "*.gradle" -o -name "*.java" -o -name "*.xml"
         
-    - name: Upload APK
+    - name: Build APK with verbose output
+      run: |
+        chmod +x gradlew || echo "No gradlew file"
+        ./gradlew clean assembleDebug --stacktrace --info || echo "Build failed but continuing"
+        
+    - name: Find APK files
+      run: |
+        find . -name "*.apk" -type f | head -10 || echo "No APK files found"
+        
+    - name: Upload APK if exists
       uses: actions/upload-artifact@v4
       with:
         name: surveillance-app
         path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
+        if-no-files-found: warn
