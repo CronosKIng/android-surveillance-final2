@@ -20,23 +20,15 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         
-    - name: Debug - List files
+    - name: Check Android project
       run: |
-        ls -la
-        find . -name "*.gradle" -o -name "*.java" -o -name "*.xml"
+        echo "=== Checking if this is Android project ==="
+        find . -name "build.gradle" -type f | head -5
+        find . -name "AndroidManifest.xml" -type f | head -5
+        find . -name "MainActivity.java" -type f | head -5
         
-    - name: Build APK with verbose output
+    - name: Build with detailed output
       run: |
-        chmod +x gradlew || echo "No gradlew file"
-        ./gradlew clean assembleDebug --stacktrace --info || echo "Build failed but continuing"
-        
-    - name: Find APK files
-      run: |
-        find . -name "*.apk" -type f | head -10 || echo "No APK files found"
-        
-    - name: Upload APK if exists
-      uses: actions/upload-artifact@v4
-      with:
-        name: surveillance-app
-        path: app/build/outputs/apk/debug/app-debug.apk
-        if-no-files-found: warn
+        echo "=== Starting Gradle Build ==="
+        ./gradlew clean assembleDebug --stacktrace --no-daemon
+      continue-on-error: true
