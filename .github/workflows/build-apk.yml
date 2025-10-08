@@ -1,4 +1,5 @@
-name: Build Android APK
+
+name: Check Project Structure
 
 on:
   push:
@@ -6,44 +7,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-        
-    - name: Check what files exist
+    - name: Analyze Project
       run: |
-        echo "=== All files in project ==="
+        echo "=== ROOT DIRECTORY ==="
         ls -la
-        echo "=== Gradle files ==="
-        find . -name "*gradle*" -type f
-        echo "=== Checking if gradlew exists ==="
-        if [ -f "./gradlew" ]; then
-          echo "gradlew EXISTS"
-          chmod +x ./gradlew
-        else
-          echo "gradlew NOT FOUND"
-        fi
-        
-    - name: Try different build methods
-      run: |
-        echo "=== Method 1: Using gradle directly ==="
-        gradle clean assembleDebug --stacktrace || echo "Method 1 failed"
-        
-        echo "=== Method 2: Create gradlew if missing ==="
-        if [ ! -f "./gradlew" ]; then
-          gradle wrapper
-          chmod +x ./gradlew
-        fi
-        
-        echo "=== Method 3: Try with gradlew ==="
-        ./gradlew clean assembleDebug --stacktrace || echo "Method 3 failed"
-      continue-on-error: true
+        echo ""
+        echo "=== ALL FOLDERS ==="
+        find . -type d -name "*" | head -20
+        echo ""
+        echo "=== ALL FILES ==="
+        find . -type f -name "*" | head -30
