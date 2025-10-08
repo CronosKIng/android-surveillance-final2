@@ -20,10 +20,8 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         
-    - name: Setup Android SDK
-      run: |
-        yes | sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.0"
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v3
         
     - name: Build APK
       run: |
