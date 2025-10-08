@@ -19,14 +19,13 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Verify project structure
+    - name: Initialize Gradle and Build
       run: |
-        pwd
-        ls -la
-        echo "Gradle files:"
-        find . -name "*.gradle*" -type f
-        echo "gradlew:"
-        ls -la gradlew || echo "gradlew not found"
-        
-    - name: Build with Gradle Wrapper
-      run: ./gradlew assembleDebug
+        # Check if gradle files exist
+        if [ -f "build.gradle" ]; then
+          echo "Building with existing Gradle setup..."
+          gradle assembleDebug
+        else
+          echo "No Gradle build files found"
+          exit 1
+        fi
