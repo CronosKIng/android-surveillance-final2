@@ -1,5 +1,4 @@
-
-name: Check Project Structure
+name: Build Android APK
 
 on:
   push:
@@ -7,20 +6,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
+  build:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Analyze Project
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: Debug project location
       run: |
-        echo "=== ROOT DIRECTORY ==="
+        echo "=== Current directory ==="
+        pwd
+        echo "=== Files in root ==="
         ls -la
-        echo ""
-        echo "=== ALL FOLDERS ==="
-        find . -type d -name "*" | head -20
-        echo ""
-        echo "=== ALL FILES ==="
-        find . -type f -name "*" | head -30
+        echo "=== Android files check ==="
+        find . -name "build.gradle" -type f
+        find . -name "settings.gradle" -type f
+        find . -name "AndroidManifest.xml" -type f
+        
+    - name: Build APK from correct location
+      run: |
+        cd /home/runner/work/android-surveillance-final2/android-surveillance-final2
+        ./gradlew clean assembleDebug --stacktrace
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: surveillance-app
+        path: app/build/outputs/apk/debug/app-debug.apk
