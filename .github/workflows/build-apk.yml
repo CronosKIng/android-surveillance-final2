@@ -2,9 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -20,11 +18,8 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Change wrapper permissions
-      run: chmod +x ./gradlew
-      
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Build with Gradle
+      run: gradle assembleDebug
       
     - name: Upload APK
       uses: actions/upload-artifact@v4
