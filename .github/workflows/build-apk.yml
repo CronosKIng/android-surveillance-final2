@@ -21,7 +21,7 @@ jobs:
         java-version: '17'
         
     - name: Build APK with Gradle
-      run: ./gradlew assembleRelease
+      run: gradle assembleRelease  # <-- Njia rahisi zaidi
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
