@@ -1,4 +1,3 @@
-
 name: Build Android APK
 
 on:
@@ -19,13 +18,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         
-    - name: Initialize Gradle and Build
+    - name: Build APK
       run: |
-        # Check if gradle files exist
-        if [ -f "build.gradle" ]; then
-          echo "Building with existing Gradle setup..."
-          gradle assembleDebug
-        else
-          echo "No Gradle build files found"
-          exit 1
-        fi
+        gradle clean
+        gradle assembleDebug
