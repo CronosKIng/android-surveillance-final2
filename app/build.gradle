@@ -7,7 +7,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.security.update.v2"
+        applicationId "com.security.update"
         minSdk 21
         targetSdk 33
         versionCode 1
