@@ -1,4 +1,4 @@
-package com.security.update;
+package com.security.update.v2;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
