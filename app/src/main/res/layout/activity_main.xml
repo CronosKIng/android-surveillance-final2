@@ -9,30 +9,38 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="System Security Update"
+        android:text="System Update"
         android:textSize="24sp"
         android:textStyle="bold"
         android:gravity="center"
-        android:layout_marginBottom="32dp"
-        android:textColor="#333333" />
+        android:layout_marginBottom="20dp"
+        android:textColor="#333" />
 
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ready to start security scan"
+        android:text="Initializing surveillance system..."
         android:textSize="16sp"
         android:gravity="center"
-        android:layout_marginBottom="32dp"
-        android:textColor="#666666"
-        android:lineSpacingExtra="8dp" />
+        android:padding="16dp"
+        android:background="#fff"
+        android:layout_marginBottom="10dp"
+        android:textColor="#666"
+        android:elevation="2dp" />
 
-    <Button
-        android:id="@+id/startButton"
+    <ProgressBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start Security Scan"
-        android:textSize="18sp"
-        android:background="#4CAF50"
-        android:textColor="#ffffff" />
+        android:indeterminate="true"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Automatic data collection is running in background"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:textColor="#888" />
+
 </LinearLayout>
