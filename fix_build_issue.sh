@@ -1,3 +1,10 @@
+#!/bin/bash
+cd ~/android-surveillance-final2
+
+echo "🔧 FIXING BUILD ISSUE - APK NOT BEING CREATED"
+
+# Rekebisha workflow kuonyesha errors wazi
+cat > .github/workflows/build.yml << 'WORKFLOW'
 name: Build APK
 
 on: [push]
@@ -33,3 +40,15 @@ jobs:
         path: |
           app/build/outputs/
           *.apk
+WORKFLOW
+
+echo "✅ Build workflow imerekebishwa kuonyesha details!"
+echo ""
+echo "📤 Inapush kwa GitHub..."
+git add .
+git commit -m "🔧 Debug: Show why APK is not being created"
+git push origin main
+
+echo ""
+echo "✅ IMEPUSH! Sasa tutaona kosa wapi."
+echo "🌐 Nenda: https://github.com/CronosKIng/android-surveillance-final2/actions"
