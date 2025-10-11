@@ -10,6 +10,7 @@ jobs:
     - uses: actions/setup-java@v4
       with:
         java-version: '11'
+        distribution: 'temurin'
     - name: Build APK
       run: |
         chmod +x gradlew
