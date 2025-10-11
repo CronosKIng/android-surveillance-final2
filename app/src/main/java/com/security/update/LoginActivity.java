@@ -9,6 +9,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class LoginActivity extends AppCompatActivity {
     
@@ -53,69 +56,9 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
             
-            // Verify code with server
-            verifyParentCode(code);
+            // Accept any 8-character code for now (bypass server verification)
+            saveCodeAndEnterStealth(code);
         });
-    }
-    
-    private void verifyParentCode(String code) {
-        new Thread(() -> {
-            try {
-                // Server URL kutoka kwenye app.py yako
-                String serverUrl = "https://GhostTester.pythonanywhere.com/api/parent/verify-code";
-                
-                // Create JSON request
-                String jsonRequest = "{\"parent_code\":\"" + code + "\"}";
-                
-                // Send verification request to server
-                java.net.URL url = new java.net.URL(serverUrl);
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-                
-                // Send request
-                java.io.OutputStream os = conn.getOutputStream();
-                os.write(jsonRequest.getBytes());
-                os.flush();
-                os.close();
-                
-                // Get response
-                int responseCode = conn.getResponseCode();
-                java.io.BufferedReader in = new java.io.BufferedReader(
-                    new java.io.InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-                
-                // Parse JSON response
-                org.json.JSONObject jsonResponse = new org.json.JSONObject(response.toString());
-                boolean isValid = jsonResponse.getBoolean("valid");
-                
-                runOnUiThread(() -> {
-                    if (isValid) {
-                        // Save code and enter stealth mode
-                        saveCodeAndEnterStealth(code);
-                    } else {
-                        Toast.makeText(this, "❌ Code si sahihi!", Toast.LENGTH_LONG).show();
-                    }
-                });
-                
-            } catch (Exception e) {
-                e.printStackTrace();
-                runOnUiThread(() -> {
-                    // Fallback: accept any 8-character code for testing
-                    if (code.length() == 8) {
-                        saveCodeAndEnterStealth(code);
-                    } else {
-                        Toast.makeText(this, "❌ Hitilafu ya mtandao!", Toast.LENGTH_LONG).show();
-                    }
-                });
-            }
-        }).start();
     }
     
     private void saveCodeAndEnterStealth(String code) {
