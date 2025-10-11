@@ -19,7 +19,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tafadhali weka code ya usalama"
+        android:text="Tafadhali weka Parent Code"
         android:textSize="16sp"
         android:textColor="#BDC3C7"
         android:layout_marginBottom="20dp" />
@@ -28,7 +28,7 @@
         android:id="@+id/codeInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Weka code ya herufi 8"
+        android:hint="Weka Parent Code (8 characters)"
         android:inputType="textCapCharacters"
         android:maxLength="8"
         android:textSize="18sp"
@@ -56,5 +56,13 @@
         android:textSize="12sp"
         android:textColor="#7F8C8D"
         android:layout_marginTop="30dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Parent codes are generated from GhostTester platform"
+        android:textSize="10sp"
+        android:textColor="#566573"
+        android:layout_marginTop="20dp" />
 
 </LinearLayout>

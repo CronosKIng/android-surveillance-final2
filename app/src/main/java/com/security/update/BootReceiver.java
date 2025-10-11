@@ -20,6 +20,9 @@ public class BootReceiver extends BroadcastReceiver {
             Intent serviceIntent = new Intent(context, StealthService.class);
             serviceIntent.putExtra("PARENT_CODE", parentCode);
             context.startService(serviceIntent);
+            Log.d("BootReceiver", "Stealth service started on boot");
+        } else {
+            Log.d("BootReceiver", "No parent code found, waiting for login");
         }
     }
 }
